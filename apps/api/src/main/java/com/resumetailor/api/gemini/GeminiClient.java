@@ -3,6 +3,7 @@ package com.resumetailor.api.gemini;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -11,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component
+@Slf4j
 public class GeminiClient {
 
     private final WebClient webClient;
@@ -49,7 +51,7 @@ public class GeminiClient {
                 Return only valid JSON, no markdown fences.
                 """.formatted(resumeText, jobDescription);
 
-        String raw = callGemini(prompt);
+        String raw = stripMarkdownFences(callGemini(prompt));
         try {
             return objectMapper.readValue(raw, SkillsGapResult.class);
         } catch (JsonProcessingException e) {
@@ -88,9 +90,24 @@ public class GeminiClient {
                 .uri("/{model}:generateContent?key={key}", model, apiKey)
                 .bodyValue(body)
                 .retrieve()
+                .onStatus(status -> status.isError(), clientResponse ->
+                        clientResponse.bodyToMono(String.class)
+                                .map(errorBody -> {
+                                    log.error("Gemini error {}: {}", clientResponse.statusCode(), errorBody);
+                                    return new GeminiException("Gemini returned " + clientResponse.statusCode() + ": " + errorBody);
+                                }))
                 .bodyToMono(String.class)
                 .block();
         return extractText(response);
+    }
+
+    private String stripMarkdownFences(String text) {
+        String stripped = text.strip();
+        if (stripped.startsWith("```")) {
+            stripped = stripped.replaceFirst("```(?:json)?\\s*", "");
+            stripped = stripped.replaceFirst("\\s*```$", "");
+        }
+        return stripped.strip();
     }
 
     private String extractText(String rawResponse) {

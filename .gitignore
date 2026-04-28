@@ -1,6 +1,7 @@
 target/
 node_modules/
 .env
+application-local.properties
 *.class
 .idea/
 *.iml
