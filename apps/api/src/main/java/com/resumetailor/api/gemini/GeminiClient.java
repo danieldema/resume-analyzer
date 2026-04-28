@@ -57,6 +57,27 @@ public class GeminiClient {
         }
     }
 
+    public String generateSuggestions(String resumeText, String jobDescription,
+                                      List<String> confirmedSkills) {
+        String skills = confirmedSkills == null || confirmedSkills.isEmpty()
+                ? "none specified"
+                : String.join(", ", confirmedSkills);
+        String prompt = """
+                You are a resume coach specializing in tech resumes. Based on the resume,
+                job description, and the candidate's confirmed skills below, provide specific,
+                actionable suggestions for tailoring this resume.
+                Focus on: what to reword, what to add, what to cut, and how to frame confirmed skills.
+                Confirmed skills: %s
+
+                Resume text:
+                %s
+
+                Job description:
+                %s
+                """.formatted(skills, resumeText, jobDescription);
+        return callGemini(prompt);
+    }
+
     String callGemini(String prompt) {
         Map<String, Object> body = Map.of(
                 "contents", List.of(Map.of(
