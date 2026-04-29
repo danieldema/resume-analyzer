@@ -24,7 +24,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleGeminiError(GeminiException e) {
         log.error("Gemini error", e);
         return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
-                .body(Map.of("error", "Analysis failed. Please try again."));
+                .body(Map.of("error", "Gemini is currently overloaded. Please try again in a moment."));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
