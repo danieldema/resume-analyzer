@@ -20,7 +20,7 @@ jobs:
           java-version: '21'
           distribution: temurin
           cache: maven
-      - run: ./mvnw verify -DskipTests=false
+      - run: chmod +x mvnw && ./mvnw verify -DskipTests=false
 
   web:
     name: Web type-check & build
