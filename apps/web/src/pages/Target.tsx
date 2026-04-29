@@ -3,11 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { TaylorAvatar } from '../components/TaylorAvatar';
 import { ErrorMessage } from '../components/ErrorMessage';
 import api from '../lib/api';
 import { extractErrorMessage } from '../lib/utils';
-import type { AnalyzeResponse, Expression } from '../types';
+import type { AnalyzeResponse } from '../types';
 
 const schema = z.object({
   file: z
@@ -25,7 +24,6 @@ type FormValues = z.infer<typeof schema>;
 export function Target() {
   useEffect(() => { document.title = 'Resume Tailor — Upload'; }, []);
   const navigate = useNavigate();
-  const [expression, setExpression] = useState<Expression>('neutral');
   const [error, setError] = useState<string | null>(null);
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormValues>({
@@ -34,7 +32,6 @@ export function Target() {
 
   const onSubmit = async (data: FormValues) => {
     setError(null);
-    setExpression('thinking');
     const formData = new FormData();
     formData.append('file', data.file[0]);
     formData.append('jobDescription', data.jobDescription);
@@ -71,22 +68,14 @@ export function Target() {
       }
     } catch (err) {
       setError(extractErrorMessage(err));
-      setExpression('neutral');
     }
   };
 
   return (
     <div className="min-h-screen bg-slate-50 flex items-start justify-center px-4 py-12">
       <div className="max-w-xl w-full">
-        <div className="flex items-center gap-4 mb-8">
-          <TaylorAvatar expression={expression} />
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900">Let's get started</h1>
-            <p className="text-slate-600 text-sm mt-1">
-              {expression === 'thinking' ? 'Analyzing your resume…' : 'Upload your resume and paste the job description.'}
-            </p>
-          </div>
-        </div>
+        <h1 className="text-2xl font-bold text-slate-900 mb-1">Analyse your resume</h1>
+        <p className="text-slate-500 text-sm mb-8">Upload your resume as a PDF and paste the job description.</p>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 bg-white rounded-xl border border-slate-200 p-6">
           <div>
@@ -116,7 +105,7 @@ export function Target() {
             disabled={isSubmitting}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            {isSubmitting ? 'Analyzing…' : 'Analyze Resume'}
+            {isSubmitting ? 'Analysing…' : 'Analyse Resume'}
           </button>
 
           <ErrorMessage message={error} />

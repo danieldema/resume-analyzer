@@ -10,5 +10,3 @@ export interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
 }
-
-export type Expression = 'neutral' | 'thinking' | 'encouraging' | 'concerned' | 'celebrating';

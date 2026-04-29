@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { TaylorAvatar } from '../components/TaylorAvatar';
+import { NeedleIcon } from '../components/NeedleIcon';
 
 export function Landing() {
   useEffect(() => { document.title = 'Resume Tailor'; }, []);
@@ -9,8 +9,11 @@ export function Landing() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white flex flex-col items-center justify-center px-4">
       <div className="max-w-lg w-full text-center">
-        <div className="flex justify-center mb-6">
-          <TaylorAvatar expression="neutral" />
+        <div className="flex justify-center items-center gap-3 mb-6">
+          <div className="bg-blue-600 text-white rounded-xl p-3">
+            <NeedleIcon size={32} className="text-white" />
+          </div>
+          <span className="text-2xl font-bold text-slate-900 tracking-tight">Resume Tailor</span>
         </div>
 
         <h1 className="text-4xl font-bold text-slate-900 mb-3">
@@ -19,7 +22,7 @@ export function Landing() {
         </h1>
 
         <p className="text-slate-600 text-lg mb-8">
-          Upload your resume and paste a job description. Taylor analyzes the gap,
+          Upload your resume and paste a job description. We analyse the gap,
           you confirm what you actually have, and we generate tailored suggestions
           or a full rewritten resume — no account required.
         </p>

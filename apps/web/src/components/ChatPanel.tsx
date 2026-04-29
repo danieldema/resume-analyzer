@@ -1,14 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Send } from 'lucide-react';
-import type { ChatMessage, Expression } from '../types';
+import type { ChatMessage } from '../types';
 
 interface Props {
   resumeText: string;
   jobDescription: string;
   initialMessages?: ChatMessage[];
-  taylorExpression: Expression;
-  setTaylorExpression: (e: Expression) => void;
 }
 
 function MessageBubble({ msg }: { msg: ChatMessage }) {
@@ -28,7 +26,7 @@ function MessageBubble({ msg }: { msg: ChatMessage }) {
   );
 }
 
-export function ChatPanel({ resumeText, jobDescription, initialMessages = [], taylorExpression: _expr, setTaylorExpression }: Props) {
+export function ChatPanel({ resumeText, jobDescription, initialMessages = [] }: Props) {
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [input, setInput] = useState('');
   const [streaming, setStreaming] = useState(false);
@@ -49,7 +47,6 @@ export function ChatPanel({ resumeText, jobDescription, initialMessages = [], ta
     setMessages(updatedMessages);
     setStreaming(true);
     setCurrentStream('');
-    setTaylorExpression('thinking');
 
     try {
       const apiBase = import.meta.env.VITE_API_URL ?? '';
@@ -87,21 +84,20 @@ export function ChatPanel({ resumeText, jobDescription, initialMessages = [], ta
       setMessages(prev => [...prev, { role: 'assistant', content: 'Something went wrong. Please try again.' }]);
     } finally {
       setStreaming(false);
-      setTaylorExpression('neutral');
     }
   };
 
   return (
     <div className="mt-8 border border-slate-200 rounded-xl overflow-hidden">
       <div className="bg-slate-50 px-4 py-3 border-b border-slate-200">
-        <h3 className="font-semibold text-slate-800 text-sm">Chat with Taylor</h3>
-        <p className="text-xs text-slate-500 mt-0.5">Ask follow-up questions about your resume. Session ends when you close the page.</p>
+        <h3 className="font-semibold text-slate-800 text-sm">Ask a follow-up question</h3>
+        <p className="text-xs text-slate-500 mt-0.5">Session ends when you close or refresh the page.</p>
       </div>
 
       <div className="h-80 overflow-y-auto p-4">
         {messages.length === 0 && (
           <p className="text-slate-400 text-sm text-center mt-8">
-            Ask Taylor anything about your resume or the job description.
+            Ask anything about your resume or this job description.
           </p>
         )}
         {messages.map((msg, i) => <MessageBubble key={i} msg={msg} />)}

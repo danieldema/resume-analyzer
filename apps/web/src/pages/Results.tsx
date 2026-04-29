@@ -1,10 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useLocation, Navigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import { Download } from 'lucide-react';
-import { TaylorAvatar } from '../components/TaylorAvatar';
 import { ChatPanel } from '../components/ChatPanel';
-import type { ChatMessage, Expression } from '../types';
+import type { ChatMessage } from '../types';
 
 interface ResultsState {
   matchScore: number;
@@ -19,23 +18,10 @@ interface ResultsState {
   messages: ChatMessage[];
 }
 
-function scoreToExpression(score: number): Expression {
-  if (score >= 70) return 'encouraging';
-  if (score < 40) return 'concerned';
-  return 'neutral';
-}
-
 export function Results() {
   useEffect(() => { document.title = 'Resume Tailor — Your Results'; }, []);
   const location = useLocation();
   const state = location.state as ResultsState | null;
-  const [expression, setExpression] = useState<Expression>('celebrating');
-
-  useEffect(() => {
-    if (!state) return;
-    const t = setTimeout(() => setExpression(scoreToExpression(state.matchScore)), 2000);
-    return () => clearTimeout(t);
-  }, []);
 
   useEffect(() => {
     return () => { if (state?.pdfUrl) URL.revokeObjectURL(state.pdfUrl); };
@@ -60,15 +46,7 @@ export function Results() {
   return (
     <div className="min-h-screen bg-slate-50 px-4 py-12">
       <div className="max-w-2xl mx-auto">
-        <div className="flex items-center gap-4 mb-8">
-          <TaylorAvatar expression={expression} />
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900">Your Results</h1>
-            <p className="text-slate-600 text-sm mt-1">
-              {expression === 'celebrating' ? "Here's how you stack up!" : "Here's your analysis."}
-            </p>
-          </div>
-        </div>
+        <h1 className="text-2xl font-bold text-slate-900 mb-8">Your Results</h1>
 
         <div className="bg-white rounded-xl border border-slate-200 p-6 mb-6">
           <div className="flex items-baseline gap-2 mb-6">
@@ -88,7 +66,7 @@ export function Results() {
               <ul className="space-y-1">
                 {state.strengths.map((s, i) => (
                   <li key={i} className="flex items-start gap-2 text-sm text-slate-700">
-                    <span className="text-green-500 mt-0.5">✓</span> {s}
+                    <span className="text-green-500 mt-0.5 font-bold">+</span> {s}
                   </li>
                 ))}
               </ul>
@@ -96,12 +74,12 @@ export function Results() {
           )}
 
           {state.weaknesses.length > 0 && (
-            <div className="mb-4">
+            <div>
               <h3 className="font-semibold text-slate-800 mb-2 text-sm uppercase tracking-wide">Areas to Strengthen</h3>
               <ul className="space-y-1">
                 {state.weaknesses.map((w, i) => (
                   <li key={i} className="flex items-start gap-2 text-sm text-slate-700">
-                    <span className="text-orange-400 mt-0.5">→</span> {w}
+                    <span className="text-slate-400 mt-0.5">→</span> {w}
                   </li>
                 ))}
               </ul>
@@ -113,7 +91,7 @@ export function Results() {
           <div className="bg-white rounded-xl border border-slate-200 p-6 mb-6">
             <h3 className="font-semibold text-slate-800 mb-4">Tailoring Suggestions</h3>
             <div className="prose prose-sm max-w-none text-slate-700">
-              <ReactMarkdown>{state.suggestions ?? ''}</ReactMarkdown>
+              <ReactMarkdown>{state.suggestions}</ReactMarkdown>
             </div>
           </div>
         )}
@@ -137,8 +115,6 @@ export function Results() {
           resumeText={state.resumeText}
           jobDescription={state.jobDescription}
           initialMessages={state.messages}
-          taylorExpression={expression}
-          setTaylorExpression={setExpression}
         />
       </div>
     </div>
