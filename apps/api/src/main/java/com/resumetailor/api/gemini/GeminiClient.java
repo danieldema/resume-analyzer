@@ -3,11 +3,14 @@ package com.resumetailor.api.gemini;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.resumetailor.api.chat.ChatMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Flux;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -100,6 +103,58 @@ public class GeminiClient {
                 %s
                 """.formatted(skills, resumeText, jobDescription);
         return callGemini(prompt);
+    }
+
+    public Flux<String> streamChat(String resumeText, String jobDescription,
+                                   List<ChatMessage> messages) {
+        List<Map<String, Object>> contents = buildChatContents(resumeText, jobDescription, messages);
+
+        return webClient.post()
+                .uri("/{model}:streamGenerateContent?alt=sse&key={key}", model, apiKey)
+                .bodyValue(Map.of("contents", contents))
+                .retrieve()
+                .bodyToFlux(String.class)
+                .filter(line -> line.startsWith("data: "))
+                .map(line -> line.substring(6))
+                .filter(json -> !json.equals("[DONE]"))
+                .mapNotNull(this::extractToken);
+    }
+
+    private String extractToken(String json) {
+        try {
+            JsonNode node = objectMapper.readTree(json);
+            String text = node.at("/candidates/0/content/parts/0/text").asText(null);
+            return (text != null && !text.isEmpty()) ? text : null;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private List<Map<String, Object>> buildChatContents(String resumeText, String jobDescription,
+                                                         List<ChatMessage> messages) {
+        List<Map<String, Object>> contents = new ArrayList<>();
+
+        contents.add(Map.of(
+                "role", "user",
+                "parts", List.of(Map.of("text",
+                        "You are a resume coach helping a candidate tailor their resume. " +
+                        "Here is their resume:\n\n" + resumeText +
+                        "\n\nJob description they're targeting:\n\n" + jobDescription +
+                        "\n\nHelp them improve their resume for this role."))));
+        contents.add(Map.of(
+                "role", "model",
+                "parts", List.of(Map.of("text",
+                        "Understood. I've reviewed the resume and job description. " +
+                        "I'm ready to help tailor the resume for this role."))));
+
+        for (ChatMessage msg : messages) {
+            String geminiRole = "assistant".equals(msg.role()) ? "model" : "user";
+            contents.add(Map.of(
+                    "role", geminiRole,
+                    "parts", List.of(Map.of("text", msg.content()))));
+        }
+
+        return contents;
     }
 
     String callGemini(String prompt) {
