@@ -2,8 +2,6 @@ import { useEffect } from 'react';
 import { useLocation, Navigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import { Download } from 'lucide-react';
-import { ChatPanel } from '../components/ChatPanel';
-import type { ChatMessage } from '../types';
 
 interface ResultsState {
   matchScore: number;
@@ -15,7 +13,6 @@ interface ResultsState {
   resumeText: string;
   jobDescription: string;
   zeroGap?: boolean;
-  messages: ChatMessage[];
 }
 
 export function Results() {
@@ -79,7 +76,7 @@ export function Results() {
               <ul className="space-y-1">
                 {state.weaknesses.map((w, i) => (
                   <li key={i} className="flex items-start gap-2 text-sm text-slate-700">
-                    <span className="text-slate-400 mt-0.5">→</span> {w}
+                    <span className="text-slate-400 mt-0.5">-&gt;</span> {w}
                   </li>
                 ))}
               </ul>
@@ -97,7 +94,7 @@ export function Results() {
         )}
 
         {state.pdfAvailable && state.pdfUrl && (
-          <div className="bg-white rounded-xl border border-slate-200 p-6 mb-6 flex items-center justify-between">
+          <div className="bg-white rounded-xl border border-slate-200 p-6 flex items-center justify-between">
             <div>
               <h3 className="font-semibold text-slate-800">Your Tailored Resume</h3>
               <p className="text-sm text-slate-500 mt-0.5">Ready to download as PDF</p>
@@ -110,12 +107,6 @@ export function Results() {
             </button>
           </div>
         )}
-
-        <ChatPanel
-          resumeText={state.resumeText}
-          jobDescription={state.jobDescription}
-          initialMessages={state.messages}
-        />
       </div>
     </div>
   );

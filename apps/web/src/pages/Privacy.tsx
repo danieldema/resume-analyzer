@@ -8,7 +8,7 @@ export function Privacy() {
     <div className="min-h-screen bg-slate-50 px-4 py-12">
       <div className="max-w-2xl mx-auto">
         <Link to="/" className="text-blue-600 hover:text-blue-800 text-sm mb-6 inline-block">
-          ← Back to Resume Tailor
+          Back to Resume Tailor
         </Link>
 
         <h1 className="text-3xl font-bold text-slate-900 mb-8">Privacy Policy</h1>
@@ -18,8 +18,8 @@ export function Privacy() {
             <h2 className="font-semibold text-slate-900 mb-2">What data is sent</h2>
             <p className="text-sm leading-relaxed">
               Your resume text and job description are sent to Google Gemini's API for analysis and content generation.
-              This is necessary for the service to function. We do not store your resume or job description on our servers —
-              the data is processed in memory and discarded after each request.
+              This is necessary for the service to function. We do not store your resume or job description on our servers.
+              The data is processed in memory and discarded after each request.
             </p>
           </section>
 
