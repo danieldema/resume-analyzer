@@ -80,6 +80,28 @@ public class GeminiClient {
         return callGemini(prompt);
     }
 
+    public String generateFullResume(String resumeText, String jobDescription,
+                                     List<String> confirmedSkills) {
+        String skills = confirmedSkills == null || confirmedSkills.isEmpty()
+                ? "none to add"
+                : String.join(", ", confirmedSkills);
+        String prompt = """
+                You are a resume coach specializing in tech resumes. Rewrite the following
+                resume to be tailored for the job description below.
+                The candidate has confirmed they possess these additional skills: %s.
+                Incorporate them naturally. Do not fabricate experience.
+                Keep the same basic structure. Return the full rewritten resume as plain
+                text, ready to be formatted into a document.
+
+                Original resume:
+                %s
+
+                Job description:
+                %s
+                """.formatted(skills, resumeText, jobDescription);
+        return callGemini(prompt);
+    }
+
     String callGemini(String prompt) {
         Map<String, Object> body = Map.of(
                 "contents", List.of(Map.of(

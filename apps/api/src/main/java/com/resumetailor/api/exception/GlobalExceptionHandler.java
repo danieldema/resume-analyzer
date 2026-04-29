@@ -33,6 +33,18 @@ public class GlobalExceptionHandler {
                 .body(Map.of("error", e.getMessage()));
     }
 
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<Map<String, String>> handleRuntime(RuntimeException e) {
+        if (e.getMessage() != null && e.getMessage().contains("LibreOffice")) {
+            log.error("PDF conversion error", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "PDF generation failed. Please try again."));
+        }
+        log.error("Unhandled runtime exception", e);
+        return ResponseEntity.internalServerError()
+                .body(Map.of("error", "Something went wrong. Please try again."));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleGeneric(Exception e) {
         log.error("Unhandled exception", e);

@@ -1,6 +1,7 @@
 package com.resumetailor.api.generate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.resumetailor.api.docx.DocxGenerator;
 import com.resumetailor.api.gemini.GeminiClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,12 +19,14 @@ import static org.mockito.Mockito.*;
 class GenerateServiceTest {
 
     private GeminiClient geminiClient;
+    private DocxGenerator docxGenerator;
     private GenerateService generateService;
 
     @BeforeEach
     void setUp() {
         geminiClient = mock(GeminiClient.class);
-        generateService = new GenerateService(geminiClient, new ObjectMapper());
+        docxGenerator = mock(DocxGenerator.class);
+        generateService = new GenerateService(geminiClient, new ObjectMapper(), docxGenerator);
     }
 
     @Test
@@ -44,12 +47,22 @@ class GenerateServiceTest {
     }
 
     @Test
-    void generate_fullResume_throwsUnsupportedOperation() {
+    void generate_fullResume_returnsPdfResponse() throws Exception {
+        when(geminiClient.generateFullResume(anyString(), anyString(), any()))
+                .thenReturn("Rewritten resume content");
+        when(docxGenerator.generatePdf(anyString()))
+                .thenReturn(new byte[]{0x25, 0x50, 0x44, 0x46}); // %PDF
+
         GenerateRequest req = new GenerateRequest(
                 "resume text", "job description", List.of(), "FULL_RESUME");
 
-        assertThatThrownBy(() -> generateService.generate(req))
-                .isInstanceOf(UnsupportedOperationException.class);
+        ResponseEntity<byte[]> response = generateService.generate(req);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getHeaders().getContentType()).isEqualTo(MediaType.APPLICATION_PDF);
+        assertThat(response.getHeaders().getFirst("Content-Disposition"))
+                .contains("tailored-resume.pdf");
+        verify(docxGenerator).generatePdf("Rewritten resume content");
     }
 
     @Test
