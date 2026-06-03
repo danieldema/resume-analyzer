@@ -13,6 +13,7 @@ interface ResultsState {
   resumeText: string;
   jobDescription: string;
   zeroGap?: boolean;
+  messages?: { role: string; content: string }[];
 }
 
 export function Results() {

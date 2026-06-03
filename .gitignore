@@ -1,8 +1,12 @@
 target/
 node_modules/
+dist/
 .env
+.env.local
 application-local.properties
 *.class
 .idea/
 *.iml
 .DS_Store
+.vscode/
+.claude/

@@ -54,7 +54,7 @@ public class DocxGenerator {
     }
 
     private byte[] convertToPdf(byte[] docxBytes) throws Exception {
-        Path tempDir = Files.createTempDirectory("resume-taylor-");
+        Path tempDir = Files.createTempDirectory("resume-tailor-");
         Path docxPath = tempDir.resolve("output.docx");
         Files.write(docxPath, docxBytes);
 
