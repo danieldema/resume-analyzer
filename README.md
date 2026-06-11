@@ -2,18 +2,15 @@
 
 A full-stack web app that analyzes your resume against a job description, surfaces the skills gap, and generates either tailored suggestions or a fully rewritten resume as a downloadable PDF.
 
-**Live:** [resume-tailor.net](https://resume-tailor.net) — no account required.
+**Live:** [resume-tailor.net](https://resume-tailor.net): no account required.
 
 ---
 
 ## How It Works
 
 1. **Upload** your resume (PDF) and paste a job description.
-2. **Review** the AI-generated skills gap analysis. Check off skills you actually have — so nothing gets fabricated.
+2. **Review** the AI-generated skills gap analysis. Check off skills you actually have, so nothing gets fabricated.
 3. **Generate** either written suggestions or a complete rewritten resume as a downloadable PDF.
-4. **Ask follow-up questions** via the built-in streaming chatbot, with your resume and the job description already in context.
-
-The application is completely stateless. No data is stored anywhere — everything lives in the browser session.
 
 ---
 
@@ -29,26 +26,6 @@ The application is completely stateless. No data is stored anywhere — everythi
 | Rate limiting | Bucket4j (10 requests/hour per IP, in-memory) |
 | Streaming | Server-Sent Events (SSE) via Spring WebFlux + `ReadableStream` on the client |
 | Deployment | Railway (API, Dockerized) + Vercel (frontend) |
-
----
-
-## Architecture
-
-```
-Browser (React SPA)
-  │
-  ├── POST /api/analyze    → AnalyzeService → PDFBox + Gemini → skills gap JSON
-  ├── POST /api/generate   → GenerateService → Gemini → POI → LibreOffice → PDF bytes
-  └── POST /api/chat       → ChatService → Gemini streaming → SSE Flux<String>
-```
-
-The frontend is a static SPA hosted on Vercel. The API is a Spring Boot JAR containerized in Docker and deployed on Railway. They share no state — every request is self-contained.
-
-**PDF generation pipeline:**
-Gemini returns plain text → Apache POI writes it into a `.docx` in memory → LibreOffice converts the `.docx` to `.pdf` in a subprocess → bytes are streamed back in the HTTP response. Temp files are cleaned up in a `finally` block regardless of outcome.
-
-**Streaming chat:**
-The `/api/chat` endpoint returns a `Flux<ServerSentEvent<String>>` from Spring WebFlux. The frontend reads it with the `ReadableStream` API, appending tokens to the UI as they arrive, then commits the full response to message history on the terminal `event: done`.
 
 ---
 
@@ -114,59 +91,6 @@ docker run -p 8080:8080 \
 ```
 
 Railway reads `railway.json` for the health check path (`/api/health`). All other configuration is set via environment variables in the Railway dashboard.
-
----
-
-## API Reference
-
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/api/health` | Health check |
-| `POST` | `/api/analyze` | Upload PDF + job description → skills gap analysis |
-| `POST` | `/api/generate` | Generate suggestions or full resume PDF |
-| `POST` | `/api/chat` | Stream a chat reply (SSE) |
-
-### POST /api/analyze
-
-`multipart/form-data` — `file` (PDF, max 10 MB) + `jobDescription` (string)
-
-```json
-{
-  "matchScore": 72,
-  "strengths": ["Strong Java background", "..."],
-  "weaknesses": ["No cloud experience shown", "..."],
-  "skillsGap": ["Kubernetes", "Terraform", "..."],
-  "resumeText": "..."
-}
-```
-
-### POST /api/generate
-
-```json
-{
-  "resumeText": "...",
-  "jobDescription": "...",
-  "confirmedSkills": ["Kubernetes", "Terraform"],
-  "outputMode": "SUGGESTIONS"
-}
-```
-
-`outputMode: "SUGGESTIONS"` → JSON `{ "suggestions": "..." }`  
-`outputMode: "FULL_RESUME"` → `application/pdf` binary
-
-### POST /api/chat
-
-```json
-{
-  "resumeText": "...",
-  "jobDescription": "...",
-  "messages": [
-    { "role": "user", "content": "How should I reframe my cloud experience?" }
-  ]
-}
-```
-
-Returns `text/event-stream`. Each `data:` line is a token; `event: done` signals end of stream.
 
 ---
 
